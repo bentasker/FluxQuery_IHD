@@ -1,7 +1,7 @@
 FluxQuery Based Energy Usage Graphs
 =======================================
 
-This is a set of example HTML and Javascript designed to query energy-usage information out of an [InfluxDB](https://www.influxdata.com/products/influxdb/) instance (actually, it should work with [InfluxDB Cloud](https://www.influxdata.com/products/influxdb-cloud/ too) using [Flux](https://docs.influxdata.com/flux/v0.x/), and graph it out using [Flot](http://www.flotcharts.org/).
+This is a set of example HTML and Javascript designed to query energy-usage information out of an [InfluxDB](https://www.influxdata.com/products/influxdb/) instance (actually, it should work with [InfluxDB Cloud](https://www.influxdata.com/products/influxdb-cloud/) too) using [Flux](https://docs.influxdata.com/flux/v0.x/), and graph it out using [Flot](http://www.flotcharts.org/).
 
 These were used to [create an In-Home-Display](https://www.bentasker.co.uk/blog/house-stuff/744-creating-a-ihd-to-view-energy-usage).
 
