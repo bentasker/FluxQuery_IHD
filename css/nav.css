@@ -1,0 +1,24 @@
+body {background-color: #000; color: #fff}
+#navbar {height: 5%; width: 100%; display: block}
+#navbar div {height: 100%; width: 10%; padding-bottom: 5px; float: left}
+#bodywrap, #timerrunning, #musicplaying {display: none;}
+#bodywrap, #frame, #musicframe, #timerframe {width: 100%; height: 95%}
+#backbtn {display: none;}
+
+.menuopt {max-width: 200px; display: inline-block; margin-right: 5px;}
+.menuopt img {max-width: 200px}
+
+#backbtn img, #reloadbtn img {height: 100%}
+
+#clock {
+    float: right !important;
+    font-weight: bold;
+    font-family: monospace;
+    text-align: right;
+    width: 5% !important;    
+}
+
+#reloadbtn {float: right !important; width: 5% !important}
+#timerrunning {text-align: center;}
+#timerrunning img, #musicplaying img {height: 100%}
+

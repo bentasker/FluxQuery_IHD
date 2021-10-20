@@ -1,0 +1,243 @@
+<html>
+<head>
+<script type="text/javascript">
+
+function timeUntilTarget(d){
+    var dateNow = new Date();   
+    var dateFuture = new Date(d); // Work out the future date
+
+    var seconds = Math.floor((dateFuture - (dateNow))/1000);
+    var minutes = Math.floor(seconds/60);
+    var hours = Math.floor(minutes/60);    
+    
+    //console.log(seconds);
+    //console.log(minutes);
+    //console.log(hours);
+    
+    
+    minutes = minutes-(hours*60);
+    seconds = seconds-(hours*60*60)-(minutes*60);    
+    
+    if  (hours < 10){
+        hours = "0" + hours;
+    }
+    if  (minutes < 10){
+        minutes = "0" + minutes;
+    }
+
+    if  (seconds < 10){
+        seconds = "0" + seconds;
+    }
+    
+    return hours + ":" + minutes + ":" + seconds +"";
+}
+
+function timeSinceTarget(d){
+    var datePast = new Date(d);
+    var dateNow = new Date(); // Work out the future date
+
+    var seconds = Math.floor((dateNow - (datePast))/1000);
+    var minutes = Math.floor(seconds/60);
+    var hours = Math.floor(minutes/60);
+
+    minutes = minutes-(hours*60);
+    seconds = seconds-(hours*60*60)-(minutes*60);
+
+    if  (hours < 10){
+        hours = "0" + hours;
+    }
+
+    if  (minutes < 10){
+        minutes = "0" + minutes;
+    }
+
+    if  (seconds < 10){
+        seconds = "0" + seconds;
+    }
+
+    return "-" + hours + ":" + minutes + ":" + seconds +"";
+};
+
+function changeCounter(){
+    newt = timeUntilTarget(window.targetd);
+    
+    document.getElementById('counter').innerHTML = newt;
+    if (newt == "00:00:00"){
+        triggerAlarm();      
+    }
+    
+    if (newt.substring(0, 2) == "0-"){
+        document.getElementById('counter').innerHTML = "00:00:00";
+        triggerAlarm();
+    }
+}
+
+function changeOverrunCounter(){
+    newt = timeSinceTarget(window.targetd);
+    document.getElementById('overruncounter').innerHTML = newt;
+    
+    if (newt == "-00:00:30"){
+        replaceAudioElement();
+    }
+}
+
+function calcTargetDate(){
+    s = document.getElementById('seconds').valueAsNumber;
+    m = document.getElementById('min').valueAsNumber * 60;
+    h = document.getElementById('hr').valueAsNumber * 3600;
+    t = s + m  + h;
+   
+    var dateNow = new Date();   
+    var dateFuture = new Date(dateNow.getTime() + t*1000); 
+    return dateFuture.toISOString();
+}
+
+function ack(){
+    clearInterval(window.timer);
+    window.targetd = false;
+
+    aud = document.getElementById('alarmsound');
+    if (aud){
+        aud.parentNode.removeChild(aud);
+    }
+    
+    document.getElementById('ack').style.display = "none";
+    document.getElementById('triggeredimage').style.display = "none";
+    document.getElementById('overruncounter').innerHTML = "";
+    document.getElementById('counter').innerHTML = "";
+    document.getElementById('controls').style.display = "block";
+    
+    window.parent.timerstopped();
+    
+}
+
+function cancel(){
+    clearInterval(window.timer);
+    window.targetd = false;
+    document.getElementById('counter').innerHTML = "";
+    document.getElementById('cancel').style.display = "none";
+    document.getElementById('controls').style.display = "block";
+    
+    window.parent.timerstopped();
+}
+
+function triggerTime(){
+    ack();
+    document.getElementById('cancel').style.display = "block";
+    document.getElementById('controls').style.display = "none";
+    window.targetd = calcTargetDate();
+    changeCounter();
+    window.timer = setInterval(changeCounter, 1000);
+    
+    window.parent.timerrunning();
+    
+}
+
+function triggerAlarm(){
+    document.getElementById('cancel').style.display = "none";
+    console.log("ARRRUGGA ARUUGGGA");
+    clearInterval(window.timer);
+    window.timer = setInterval(changeOverrunCounter, 1000)
+    document.getElementById('overruncounter').innerHTML = "-00:00:00";
+    document.getElementById('ack').style.display = "block";
+    document.getElementById('triggeredimage').style.display = "block";
+    
+    window.parent.timeralarm();
+    
+    addAudioElement();
+}
+
+function resetDefaults(){
+    document.getElementById('seconds').value = 00;
+    document.getElementById('min').value = 01;
+    document.getElementById('hr').value = 00;
+    
+}
+
+
+function addAudioElement(){
+
+    var audioElement = document.createElement('audio');
+    audioElement.setAttribute('src', 'imgs/alarm.mp3');
+    audioElement.setAttribute('play', 'autoplay');
+    audioElement.loop = true;
+    audioElement.id = "alarmsound"
+    
+    audioElement.addEventListener("load", function() {
+        audioElement.play();
+    }, true);    
+    
+    document.getElementById('audiowrap').appendChild(audioElement);
+    document.getElementById('alarmsound').play();
+
+}
+
+function replaceAudioElement(){
+    aud = document.getElementById('alarmsound');
+    if (aud){
+        aud.parentNode.removeChild(aud);
+    }
+    
+    var audioElement = document.createElement('audio');
+    audioElement.setAttribute('src', 'imgs/alarm_ignored.mp3');
+    audioElement.setAttribute('play', 'autoplay');
+    audioElement.loop = true;
+    audioElement.id = "alarmsound"
+    
+    audioElement.addEventListener("load", function() {
+        audioElement.play();
+    }, true);    
+    
+    document.getElementById('audiowrap').appendChild(audioElement);
+    document.getElementById('alarmsound').play();
+    
+    
+
+}
+
+</script>
+<link rel="stylesheet" href="css/timer.css" />
+</head>
+<body>
+
+<div class="inputwrap">
+<div class="timewrap">
+<button onclick="this.parentNode.querySelector('.timein').stepDown()">-</button>
+<input class="timein" type="number" id="hr" value="00">
+<button onclick="this.parentNode.querySelector('.timein').stepUp()">+</button>
+:
+</div>
+
+
+<div class="timewrap">
+<button onclick="this.parentNode.querySelector('.timein').stepDown()">-</button>
+<input class="timein" type="number" id="min" value="01">
+<button onclick="this.parentNode.querySelector('.timein').stepUp()">+</button>
+:
+</div>
+
+<div class="timewrap">
+<button onclick="this.parentNode.querySelector('.timein').stepDown()">-</button>
+<input class="timein" type="number" id="seconds" value="00">
+<button onclick="this.parentNode.querySelector('.timein').stepUp()">+</button>
+</div>
+
+<div class="controls" id="controls">
+<button onclick="triggerTime()" style="float: left; width: 40%;">Start</buttton>
+<button onclick="resetDefaults()"  style="float: right; width: 40%;">Reset</buttton>
+</div>
+</div>
+
+
+<div id="counter"></div>
+<div id="cancel">
+    <button onclick="cancel()">cancel</button>
+    <div id="runningimage"><img src="imgs/dance_pikachu.gif"></div>
+</div>
+<div id="overruncounter"></div>
+<div id="triggeredimage" onclick="ack()"><img src="imgs/alarm_triggered2.gif"></div>
+<div id="ack"><button onclick="ack()">ACK</button></div>
+<div id="audiowrap"></div>
+
+</body>
+</html>

@@ -1,0 +1,58 @@
+body {
+    background-color: #000; 
+    color: #2E9AFE
+}
+
+#recent-usage, #currentUse, #currentPHR, #currentTot, #currentCst {
+    display: inline-block
+}
+    
+#currentUse, #currentCst, #currentTot, #currentPHR, #averageCst {
+    height: 10%;
+    text-align: center;
+    width: 23%;
+}
+
+#currentTot {
+    margin-left: 5%;
+}
+
+#curr, #currphr, #currcst, #currtot, #avgcst {
+    font-size: 3em
+}
+
+.moderate {
+    color: #FEA32E;
+}
+.high {
+    color: #FE2E2E;
+}
+
+.apocalyptic {
+    color: #FE2E99
+}
+
+.clr {
+    clear: both
+}
+
+#alternate_graphs, #averageCst {
+    display: none
+}
+
+.clicker {
+    left: 90%;
+    position: absolute;
+    top: 50%;
+    font-size: 3em;
+}
+
+#recent-usage, #daily-usage, #d30-usage, #d30-cost {
+    width: 90%;
+    height: 30%;
+}
+
+#default_graphs, #alternate_graphs {
+    margin-top: 20px;
+}
+

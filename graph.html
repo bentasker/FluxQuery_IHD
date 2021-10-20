@@ -1,0 +1,421 @@
+<html>
+<head>
+<script type="text/javascript" src="js/jquery-3.6.0.min.js"></script>
+<script type="text/javascript" src="js/flot-flot-453b017/jquery.flot.js"></script>
+<script type="text/javascript" src="js/flot-flot-453b017/jquery.flot.time.js"></script>
+<script type="text/javascript" src="js/flot-flot-453b017/jquery.flot.symbol.js"></script>
+<script type="text/javascript" src="js/flot-flot-453b017/jquery.flot.axislabels.js"></script>
+<script type="text/javascript">
+
+var influxdb = ""; /* Set the URL to your InfluxDB */
+var lineoptions = {
+    series: {
+        lines: {
+            show: true
+        },
+        points: {
+            radius: 3,
+            fill: true,
+            show: false
+        }
+    },
+    xaxis: {
+        mode: "time",
+        tickSize: [1, "hour"],
+        tickLength: 0,
+        axisLabel: "2012",
+        axisLabelUseCanvas: true,
+        axisLabelFontSizePixels: 12,
+        axisLabelFontFamily: 'Verdana, Arial',
+        axisLabelPadding: 10,
+
+    },
+    yaxes: [{
+        axisLabel: "w",
+        axisLabelUseCanvas: true,
+        axisLabelFontSizePixels: 12,
+        axisLabelFontFamily: 'Verdana, Arial',
+        axisLabelPadding: 3,
+
+    }, {
+        position: "right",
+        axisLabel: "Change(%)",
+        axisLabelUseCanvas: true,
+        axisLabelFontSizePixels: 12,
+        axisLabelFontFamily: 'Verdana, Arial',
+        axisLabelPadding: 3
+    }
+    ],
+    legend: {
+            show: false
+    },
+    grid: {
+        hoverable: true,
+        borderWidth: 2,
+        borderColor: "#633200",
+
+    },
+    colors: ["#2E9AFE"]
+};
+
+var baropts = {
+    series: {
+        lines: {
+            show: false
+        },
+        points: {
+            show: false
+        },
+        bars: { show : true}
+    },
+    bars: {
+        align: "center", 
+        barWidth: 22 * 60 * 60 * 1000 // This is in ms...    
+    },
+    xaxis: {
+        mode: "time",
+        tickSize: [5, "day"],
+        tickLength: 0,
+        axisLabel: "Date",
+        axisLabelUseCanvas: true,
+        axisLabelFontSizePixels: 12,
+        axisLabelFontFamily: 'Verdana, Arial',
+        axisLabelPadding: 10,
+
+    },
+    yaxes: [{
+        axisLabelUseCanvas: true,
+        axisLabelFontSizePixels: 12,
+        axisLabelFontFamily: 'Verdana, Arial',
+        axisLabelPadding: 3,
+
+    }, {
+        position: "right",
+        axisLabelUseCanvas: true,
+        axisLabelFontSizePixels: 12,
+        axisLabelFontFamily: 'Verdana, Arial',
+        axisLabelPadding: 3
+    }
+    ],
+    legend: {
+        show: false            
+    },
+    grid: {
+        hoverable: true,
+        borderWidth: 2,
+        borderColor: "#633200",
+
+    },
+    colors: ["#2E9AFE"]
+};
+
+</script>
+<script type="text/javascript">
+
+function isHidden(e) {
+    return (e.offsetParent === null)
+}
+
+function round(num) {
+    //https://www.delftstack.com/howto/javascript/javascript-round-to-2-decimal-places/
+    var m = Number((Math.abs(num) * 100).toPrecision(15));
+    return Math.round(m) / 100 * Math.sign(num);
+}
+    
+
+function sendFluxQuery(query, callback, ele_name, label, multiplier, graph_type, thresholds, prefix, dec_places){
+    var request = new XMLHttpRequest();
+    try{
+        request.open("POST", window.influxdb + "/api/v2/query?org=myorg");
+        request.setRequestHeader('Content-Type', 'application/vnd.flux');
+        
+        request.onreadystatechange = function() {//Call a function when the state changes.
+            if(request.readyState == 4 && request.status == 200) {
+                callback(request.responseText, 
+                        ele_name, 
+                        label, 
+                        multiplier, 
+                        graph_type, 
+                        thresholds, 
+                        prefix, 
+                        dec_places);
+            }
+        }        
+        
+        request.send(query);
+    } catch(e) {
+        alert(e);
+    }
+}
+
+function updateGraphing(text, ele_name, label, multiplier, graph_type, ignored1, ignored2){
+
+    if (isHidden(document.getElementById(ele_name))){
+        return;
+    }
+
+    lines=text.split("\n");
+    
+    data = []
+    counter = 0;
+    for (var i=0; i<lines.length; i++){
+        l = lines[i];
+        cols = l.split(",");
+        
+        if (l.slice(0,1) == "#"){
+            continue;
+        }
+        
+        if (counter == 0){
+            /* First CSV line gives us indices */
+            val_idx = cols.indexOf("_value");
+            time_idx = cols.indexOf("_time");
+            counter++;
+            continue;
+        }
+        
+        time = new Date(cols[time_idx]);
+        val = cols[val_idx]*multiplier;
+        
+        data.push([time, val]);
+    }
+
+    dataset = [
+        { label: label, data: data }
+    ];
+    
+    if (graph_type == "line"){
+        opts = window.lineoptions
+    }else{
+        opts = window.baropts
+    }
+    
+    $.plot($("#" + ele_name), dataset, opts);  
+}
+
+function updateTextSection(text, ele_name, label, multiplier, graph_type, thresholds, prefix, dec_places){
+
+        lines=text.split("\n");
+        data = [];
+        counter = 0;
+        for (var i=0; i<lines.length; i++){
+            l = lines[i];
+            if (l.slice(0,1) == "#"){
+                continue;
+            }
+            cols = l.split(","); 
+            
+            if (counter == 0){
+                /* First CSV line gives us indices */
+                val_idx = cols.indexOf("_value");
+                //time_idx = cols.indexOf("_time");
+                counter++;
+                continue;
+            }            
+
+            if (cols.length < 6){
+                continue;
+            }
+            //console.log(cols);
+            //time = new Date(cols[5]);
+            val = cols[val_idx];
+            
+            used = round(val * multiplier).toFixed(dec_places) 
+            ele = document.getElementById(ele_name);
+            ele.innerHTML = used;
+            
+            if (prefix != ""){
+                document.getElementById(ele_name+"_pref").innerHTML = prefix;
+            }
+            
+            if (used > thresholds[0]){
+                ele.className = "apocalyptic";
+            }else if (used > thresholds[1]){
+                ele.className = "high";
+            }else if (used > thresholds[2]){
+                ele.className = "moderate";
+            }else{
+                ele.className = "normal";
+            }   
+        }
+}
+ 
+function refreshGraphs(){      
+
+    var d = new Date();
+    d.setHours(0,0,0,0);
+    midnight = d.toISOString();
+
+    q = `from(bucket: "Systemstats")
+    |> range(start: -12h)
+    |> filter(fn: (r) => r._measurement == "power_watts" and r._field == "consumption")
+    |> filter(fn: (r) => r.host == "power-meter")`;
+
+    sendFluxQuery(q, updateGraphing, "recent-usage", "Consumption (W)", 1, "line", [], "", 0);
+
+    
+    q = `from(bucket: "Systemstats")
+    |> range(start: -1h)
+    |> filter(fn: (r) => r._measurement == "power_watts" and r._field == "consumption")
+    |> filter(fn: (r) => r.host == "power-meter")
+    |> last()`;    
+    
+    sendFluxQuery(q, updateTextSection, "curr", "", 1, "", [2000, 1200, 700], "", 0);
+    
+    
+    q = `from(bucket: "Systemstats")
+    |> range(start: -1h)
+    |> filter(fn: (r) => r._field == "consumption_cost")
+    |> filter(fn: (r) => r.host == "power-meter")
+    |> map(fn: (r) => ({ r with _value: float(v: r._value) / 100.00 }))
+    |> last()
+    `;    
+    
+    sendFluxQuery(q, updateTextSection, "currphr", "", 1, "", [0.2, 0.15, 0.1], "&pound;", 2);
+    
+    q = `from(bucket: "Systemstats")
+    |> range(start: -1h)
+    |> filter(fn: (r) => r._measurement == "power_watts" and r._field == "watts_today")
+    |> filter(fn: (r) => r.host == "power-meter")
+    |> last()
+    |> map(fn: (r) => ({r with _value: float(v: r._value) / 1000.00 }))`;
+  
+    sendFluxQuery(q, updateTextSection, "currtot", "", 1, "", [20, 16, 14], "", 2);
+    
+    q = `from(bucket: "Systemstats")
+    |> range(start: -1h)
+    |> filter(fn: (r) => r._measurement == "power_watts" and r._field == "today_cost")
+    |> filter(fn: (r) => r.host == "power-meter")
+    |> last()
+    |> map(fn: (r) => ({r with _value: float(v: r._value) / 100.00}))`;
+  
+    sendFluxQuery(q, updateTextSection, "currcst", "", 1, "", [3, 2.6, 2.5], "&pound;", 2);
+
+    
+    q = `from(bucket: "Systemstats/rp_720d")
+    |> range(start: -10d, stop: ` + midnight +   `)
+    |> filter(fn: (r) => r._measurement == "power_watts" and (r._field == "watts_today"))
+    |> filter(fn: (r) => r.host == "power-meter")
+    |> aggregateWindow( every: 1d, fn: max )   
+    `
+    sendFluxQuery(q, updateGraphing, "daily-usage", "Daily Consumption (kWh)", 0.001, "bar", [], "", 0);
+    
+    
+    q = `from(bucket: "Systemstats/rp_720d")
+    |> range(start: -30d, stop: ` + midnight +   `)
+    |> filter(fn: (r) => r._measurement == "power_watts" and (r._field == "watts_today"))
+    |> filter(fn: (r) => r.host == "power-meter")
+    |> aggregateWindow( every: 1d, fn: max )   
+    `
+    sendFluxQuery(q, updateGraphing, "d30-usage", "Daily Consumption (kWh)", 0.001, "bar", [], "", 0);    
+    
+
+    q = `from(bucket: "Systemstats/rp_720d")
+    |> range(start: -30d, stop: ` + midnight +   `)
+    |> filter(fn: (r) => r._measurement == "power_watts" and (r._field == "today_cost"))
+    |> filter(fn: (r) => r.host == "power-meter")
+    |> map(fn: (r) => ({ r with _value: float(v: r._value) / 100.00 }))
+    |> aggregateWindow( every: 1d, fn: max )   
+    `
+    sendFluxQuery(q, updateGraphing, "d30-cost", "Daily Cost", 1, "bar", [], "", 2);     
+    
+    
+    calcHourlyAverageCost();
+}
+
+function calcHourlyAverageCost(){
+    var Midnight = new Date();
+    Midnight.setHours(0,0,0,0);
+    
+    var dateNow = new Date();
+    var seconds = Math.floor((dateNow - (Midnight))/1000);
+    var hours = Math.floor(seconds/3600);
+    
+    today_cost = document.getElementById('currcst').textContent;
+    
+    avg = (today_cost / hours).toFixed(2);
+    //console.log(today_cost);
+    //console.log(hours);
+    //console.log(avg);
+    document.getElementById('avgcst').innerHTML = avg;
+    document.getElementById('avgcst_pref').innerHTML = "&pound;";
+}
+
+function toggleDisplay(){
+    ele1 = document.getElementById('default_graphs');
+    ele2 = document.getElementById('alternate_graphs');
+    
+    txt1 = document.getElementById('currentCst');
+    txt2 = document.getElementById('averageCst');
+
+    if (ele1.style.display == "block"){
+        ele1.style.display = "none";
+        ele2.style.display = "block";
+        
+        txt1.style.display = "none";
+        txt2.style.display = "inline-block";
+        
+        refreshGraphs();
+    }else{
+        ele1.style.display = "block";
+        ele2.style.display = "none";
+        
+        txt1.style.display = "inline-block";
+        txt2.style.display = "none";        
+        
+        refreshGraphs();
+    }
+}
+
+$(document).ready(function () {
+    refreshGraphs();
+});
+
+var rfr = setInterval(refreshGraphs, 60000);
+</script>
+<link rel="stylesheet" href="css/graph.css" />
+</head>
+<body>
+
+<!-- Text OP starts -->
+<div id="currentUse">Current Use<br /><span id="curr"></span> w</div>
+<div id="currentPHR">Cost<br /><span id="currphr_pref"></span><span id="currphr"></span>/hr </div>
+
+
+<div id="currentTot">Consumed Today<br /><span id="currtot"></span><span id="unit">kWh</span></div>
+<div id="currentCst">Cost Today<br /><span id="currcst_pref"></span><span id="currcst"></span></div>
+
+
+<!-- Page 2 text -->
+<div id="averageCst">Avg Today<br /><span id="avgcst_pref"></span><span id="avgcst"></span>/hr</div>
+
+
+
+<!-- Graphs start -->
+<div class="clr"></div>
+<div id="default_graphs" style="display: block"  onclick="toggleDisplay()">
+    <div class="graphtitle"><b>Consumption (W)</b></div>
+    <div id="recent-usage"></div>
+
+    <div class="graphtitle"><b>kWh per day</b></div>
+    <div id="daily-usage"></div>
+    <div id="clickor1" class="clicker">
+     &gt;
+    </div>
+</div>
+
+<!-- Page 2 -->
+<div id="alternate_graphs">
+    <div class="graphtitle"><b>kWh per day</b></div>
+    <div id="d30-usage"></div>
+    
+    <div class="graphtitle"><b>&pound per day</b></div>
+    <div id="d30-cost"></div>
+    <div id="clickor2" class="clicker" onclick="toggleDisplay()">
+     &lt;
+    </div>
+    
+</div>
+
+</body>
+</html>

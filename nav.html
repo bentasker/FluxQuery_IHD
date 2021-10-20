@@ -1,0 +1,196 @@
+<html>
+
+<script type="text/javascript">
+function doBack(){
+    document.getElementById("bodywrap").style.display = 'none';
+    document.getElementById("backbtn").style.display = 'none';
+    document.getElementById('musicframe').style.display = 'none';
+    document.getElementById('timerframe').style.display = 'none';
+    document.getElementById("menubtns").style.display = 'block';
+}
+
+function goTo(url){
+    document.getElementById('frame').setAttribute('src', url);
+    document.getElementById('menubtns').style.display = 'none';
+    document.getElementById('musicframe').style.display = 'none';
+    document.getElementById('timerframe').style.display = 'none';
+    document.getElementById('frame').style.display = 'block';
+    document.getElementById('bodywrap').style.display = 'block';
+    document.getElementById("backbtn").style.display = 'block';
+}
+
+function goToMusic(url){
+    document.getElementById('musicframe').style.display = 'block';
+    document.getElementById('timerframe').style.display = 'none';
+    document.getElementById('frame').style.display = 'none';
+    document.getElementById('menubtns').style.display = 'none';
+    document.getElementById('bodywrap').style.display = 'block';
+    document.getElementById("backbtn").style.display = 'block';
+}
+
+function goToTimer(url){
+
+    document.getElementById('timerframe').style.display = 'block';
+    document.getElementById('musicframe').style.display = 'none';
+    document.getElementById('frame').style.display = 'none';
+    document.getElementById('menubtns').style.display = 'none';
+    document.getElementById('bodywrap').style.display = 'block';
+    document.getElementById("backbtn").style.display = 'block';
+}
+
+
+function timerrunning(){
+    document.getElementById('timerrunning').style.display = 'inline-block';
+    document.getElementById('alarmactive').style.display = 'none';
+    document.getElementById('alarmrunning').style.display = 'block';    
+}
+
+function timerstopped(){
+    document.getElementById('timerrunning').style.display = 'none';
+    restartMusic();
+}
+
+function timeralarm(){
+    document.getElementById('alarmactive').style.display = 'inline-block';
+    document.getElementById('alarmrunning').style.display = 'none';
+    pauseMusic();
+}
+
+function musicPlayingCheck(){
+    var ele = document.getElementById('musicframe').contentWindow.document.getElementById('player-btn-playpause');
+    if (ele && ele.className.includes('ui-icon-pause')){
+        document.getElementById('musicplaying').style.display = 'inline-block';
+    }else{
+        document.getElementById('musicplaying').style.display = 'none';
+    }
+}
+
+function pauseMusic(){
+    //document.getElementById('player-btn-playpause').click()
+    //ui-icon-pause
+    
+    var ele = document.getElementById('musicframe').contentWindow.document.getElementById('player-btn-playpause');
+    if (ele){
+        if (ele.className.includes('ui-icon-pause')){
+            window.player_playing = true;
+            window.player_paused = true;
+            ele.click();
+        }else{
+            window.player_playing = false;
+            window.player_paused = false;
+        }
+    }
+}
+
+
+function restartMusic(){
+    var ele = document.getElementById('musicframe').contentWindow.document.getElementById('player-btn-playpause');
+    if (ele && window.player_paused){
+        if (window.player_playing){
+            ele.click();
+        }
+    }
+    window.player_paused = false;
+}
+
+
+function pausePlayers(){
+    // Will be detailed/provided once improved
+}
+
+
+function restoreBtn(){
+    document.getElementById('servingbtn').style.opacity = 1;
+}
+
+function writeTime(){
+    d = new Date();
+    
+    hrs = d.getHours();
+    mins = d.getMinutes();
+    
+    if (mins < 10){
+        mins = "0" + mins;
+    }
+    if (hrs < 10){
+        hrs = "0" + hrs;
+    }
+    
+    now = hrs + ":" + mins;
+    ele = document.getElementById('clock');
+    
+    if (ele.innerHTML != now){
+        ele.innerHTML = now;
+    }
+}
+
+window.musicCheck = setInterval(musicPlayingCheck, 1000);
+window.clock = setInterval(writeTime, 2000);
+</script>
+
+<link rel="stylesheet" href="css/nav.css" />
+<body>
+
+<div id="navbar">
+    <div id="backbtn" onclick="doBack()">
+        <img src="imgs/back.png" title="BACK">BACK
+    </div>
+
+    
+    <div id="musicplaying" onclick="goToMusic();">
+        <img id="musicrunning" src="imgs/dancing.gif">
+    </div>    
+    
+    <div id="timerrunning" onclick="goToTimer('timer.html')">
+        <img id="alarmrunning" src="imgs/dance_pikachu.gif">
+        <img id="alarmactive" src="imgs/pikachu_thundershock.gif">
+    </div>
+    
+    <div id="clock">
+    </div>    
+    
+    <div id="reloadbtn" onclick="window.location.reload(true)">
+        <img src="imgs/reload.png" title="Reload">
+    </div>    
+    
+
+    
+</div>
+
+<div id="bodywrap">
+    <iframe id="frame"></iframe>
+    <iframe id="musicframe" src="SubFire/"></iframe>
+    <iframe id="timerframe" src="timer.html"></iframe>
+</div>
+
+<div id="menubtns">
+
+    <div class="menuopt" onclick="goToMusic();">
+        <img src="imgs/music.jpg">
+    </div>
+
+    <div class="menuopt" onclick="goTo('graph.html');">
+        <img src="imgs/electricity.jpg">
+    </div>    
+    
+    <div class="menuopt" onclick="goTo('https://recipebook.bentasker.co.uk');">
+        <img src="imgs/recipes.jpg">
+    </div>        
+    
+    
+    <div class="menuopt" onclick="goToTimer('timer.html');">
+        <img src="imgs/timer.jpg">
+    </div>        
+
+    <div class="menuopt" onclick="pausePlayers();">
+        <img id="servingbtn" src="imgs/serving.jpg">
+    </div>         
+    
+    
+</div>
+
+
+</body>
+
+
+</html>

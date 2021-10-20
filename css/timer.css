@@ -1,0 +1,38 @@
+body {background-color: #000; color: #2E9AFE}
+.clr {clear: both}
+
+
+input[type="number"]{ padding: 20px 10px; line-height: 28px; width: 50%}
+
+input[type="number"] {
+  -webkit-appearance: textfield;
+     -moz-appearance: textfield;
+          appearance: textfield;
+}
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none;
+}
+
+.timewrap {display: inline-block; width: 25%}
+button {padding: 20px 10px; line-height: 28px;}
+
+#counter, #overruncounter, #ack, #triggeredimage, #cancel {    width: 100%;
+    text-align: center;
+    font-size: 4em;
+}
+
+#overruncounter {font-size: 1.3em; color: red;}
+#triggeredimage img {height: 20%}
+
+.inputwrap {
+    width: 100%;
+    text-align: center;
+}
+.controls {display: block;width: 20%;margin: auto;}
+#ack, #triggeredimage, #cancel {display: none}
+
+#counter {margin-top: 5%;}
+
+#runningimage img {width: 120px; }
+
