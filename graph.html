@@ -154,7 +154,7 @@ function updateGraphing(text, ele_name, label, multiplier, graph_type, ignored1,
         return;
     }
 
-    lines=text.split("\n");
+    lines=text.replace(/\r/g,'').split("\n");
     
     data = []
     counter = 0;
